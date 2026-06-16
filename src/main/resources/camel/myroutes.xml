@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes id="myRoutes"
+        xmlns="http://camel.apache.org/schema/spring"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <route id="sayHelloRoute" routeConfigurationId="*">
+        <from uri="direct:sayHello"/>
+        <log message="Hello!!! Lets call the Quote Service" loggingLevel="DEBUG"/>
+        <toD uri="https://quote.dev.testcu.tenants.portx.io" />
+    </route>
+</routes>
