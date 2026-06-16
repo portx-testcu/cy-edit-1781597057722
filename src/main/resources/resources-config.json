@@ -1,0 +1,43 @@
+{
+  "resources": [
+    {
+      "pattern": ".*\\.xml$"
+    },
+    {
+      "pattern": "camel/.*\\.xml$"
+    },
+    {
+      "pattern": "graphql/.*\\.graphql$"
+    },
+    {
+      "pattern": "mappings/.*\\.ds$"
+    },
+    {
+      "pattern": "wsdl/.*\\.wsdl$"
+    },
+    {
+      "pattern": "spec/.*\\.yaml$"
+    },
+    {
+      "pattern": "swagger/validation/.*\\.properties$"
+    },
+    {
+      "pattern": ".*\\.properties$"
+    },
+    {
+      "pattern": "com/github/fge/jsonschema/.*\\.properties$"
+    },
+    {
+      "pattern": "draftv3/schema$"
+    },
+    {
+      "pattern": "draftv4/schema$"
+    },
+    {
+      "pattern": "draftv4/hyper-schema$"
+    },
+    {
+      "pattern": "reference.conf$"
+    }
+  ]
+}
