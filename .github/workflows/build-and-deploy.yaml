@@ -1,0 +1,88 @@
+name: AWS ECR Push
+
+on:
+  push:
+    branches: ['dev']
+
+jobs:
+  deploy:
+    name: Push to ECR
+    runs-on: ubuntu-latest
+
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+    - name: Auth ECR
+      id: ecr-auth
+      uses: portx-phim/shared-actions/ecr-auth@main
+      with:
+        aws-account: '549231858676'
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Extract maven version (if present)
+      id: maven_version
+      if: ${{ hashFiles('pom.xml') != '' }}
+      uses: mikefarah/yq@master
+      with:
+        cmd: yq '.project.version' pom.xml -r
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt' # See 'Supported distributions' for available options
+        java-version: '21'
+
+    - name: Create settings.xml
+      uses: whelk-io/maven-settings-xml-action@v20
+      with:
+        repositories: '[{"id":"github","url":"https://portx.jfrog.io/portx/portx-releases","releases":{"enabled":true},"snapshots":{"enabled":true}},{"id":"portx-repository-snapshots","url":"https://portx.jfrog.io/portx/portx-snapshots","releases":{"enabled":false},"snapshots":{"enabled":true}},{"id":"portx-repository-releases","url":"https://portx.jfrog.io/portx/portx-releases","releases":{"enabled":true},"snapshots":{"enabled":false}},{"id":"terracotta-snapshots","url":"https://www.terracotta.org/download/reflector/snapshots","releases":{"enabled":false},"snapshots":{"enabled":true}},{"id":"terracotta-releases","url":"https://www.terracotta.org/download/reflector/releases","releases":{"enabled":true},"snapshots":{"enabled":false}}]'
+        servers: |
+            [{"id": "portx-repository-snapshots", "username": "deployer", "password": "${{ secrets.PORTX_SNAPSHOTS_PASSWORD }}"},{"id": "portx-repository-releases", "username": "deployer", "password": "${{ secrets.PORTX_RELEASES_PASSWORD }}"}]
+        output_file: settings.xml
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        platforms: linux/amd64
+        provenance: false
+        tags: ${{ steps.ecr-auth.outputs.images-repo-url }}/${{ github.event.repository.name }}:${{ steps.maven_version.outputs.result }}
+
+    - name: Extract Git author info from token #This configures git from the token info - the token should be the global PAT configured per org
+      id: git-author
+      uses: release-plz/git-config@v0.1.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Configure Git
+      run: |
+        echo "Git configured as follows:"
+        echo "${{ steps.git-author.outputs.email }}"
+        echo "${{ steps.git-author.outputs.name }}"
+        git config user.name ${{ steps.git-author.outputs.name }}
+        git config user.email ${{ steps.git-author.outputs.email }}
+
+    - name: Bump version
+      run: |
+        mvn -B release:update-versions
+
+    - name: Commit back to branch
+      run: |
+        git add pom.xml
+        git commit --message '[skip ci] Auto-increment SNAPSHOT version'
+        git push origin dev --force
