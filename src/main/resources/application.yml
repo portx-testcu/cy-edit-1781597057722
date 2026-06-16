@@ -1,0 +1,77 @@
+quarkus:
+  banner:
+    enabled: true
+  camel:
+    servlet:
+      url-patterns: /*
+  http:
+    port: 8080
+  devservices:
+    enabled: false
+  log:
+    file:
+      enable: true
+    level: INFO
+    category:
+      "cy-edit-1781597057722":
+        level: DEBUG
+      "org.apache.camel.builder.AdviceWith":
+        level: WARN
+      "io.quarkus.opentelemetry.runtime.QuarkusContextStorage":
+        level: ERROR
+    console:
+      format: "%d{HH:mm:ss.SSS} [%t] %p %c: %m %X %n"
+      json: false
+
+  default-locale: en_US
+
+  application:
+    name: cy-edit-1781597057722
+
+  otel:
+    traces:
+      exporter: none
+
+camel:
+  context:
+    name: cy-edit-1781597057722
+  main:
+    global-options[CamelLogEipName]: cy-edit-1781597057722
+    name: cy-edit-1781597057722
+    routes-include-pattern: "classpath:camel/myroutes.xml"
+    startup-summary-level: verbose
+    stream-caching-enabled: true
+    use-mdc-logging: true
+    dump-routes: false
+
+  rest:
+    inline-routes: false
+
+# An example of portx-camel-quarkus-lib header and property aggregators definition.
+
+#  beans:
+#    myHeaderAggregator:
+#      ~: "#class:io.portx.camel.aggregation.HeaderAggregationStrategy"
+#      header-name: myHeader
+#    myPropertyAggregator:
+#      ~: "#class:io.portx.camel.aggregation.PropertyAggregationStrategy"
+#      property-name: myProperty
+
+"%dev":
+  quarkus:
+    log:
+      console:
+        json: false
+    live-reload:
+      watched-resources: mappings/*.ds
+
+"%test":
+  quarkus:
+    log:
+      console:
+        json: false
+      category:
+        "org.apache.camel.builder.AdviceWith":
+          level: INFO
+        "cy-edit-1781597057722":
+          level: DEBUG
