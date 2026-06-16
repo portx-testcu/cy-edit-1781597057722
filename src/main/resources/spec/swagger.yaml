@@ -1,0 +1,17 @@
+---
+openapi: 3.0.1
+info:
+  title: Title of the API
+  version: "1.0"
+servers:
+  - url: /cy-edit-1781597057722/1.0
+paths:
+  /:
+    get:
+      summary: Get a random Quote
+      responses:
+        '200':
+          description: |-
+            200 response
+          content:
+            application/json: {}
